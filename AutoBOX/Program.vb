@@ -3,6 +3,7 @@ Option Explicit On
 
 Imports System
 Imports System.Windows.Forms
+Imports Velopack
 
 ''' <summary>
 ''' Einstiegspunkt der Anwendung AutoBOX.exe.
@@ -12,6 +13,9 @@ Module Program
 
     <STAThread>
     Public Sub Main()
+        ' Velopack: MUSS die erste Anweisung sein (Install-/Update-Hooks).
+        VelopackApp.Build().Run()
+
         Application.EnableVisualStyles()
         Application.SetCompatibleTextRenderingDefault(False)
         Application.Run(New MainForm())

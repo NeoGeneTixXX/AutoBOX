@@ -14,7 +14,9 @@ Blechteil-Generator für **Solid Edge**: Aus einer Tabelle mit Datensätzen (Bre
 
 ## Installation
 
-`AutoBOX.exe` (aus `AutoBOX\bin\Release\net48\`) in einen beliebigen Ordner kopieren und starten. Optional als EXE-Makro-Schaltfläche im Solid-Edge-Ribbon einbinden – `AutoBOX.ico`/`AutoBOX.png` im selben Ordner werden dann als Symbol verwendet.
+Unter [Releases](https://github.com/NeoGeneTixXX/AutoBOX/releases) das Setup `AutoBOX-win-Setup.exe` herunterladen und ausführen. AutoBOX wird ohne Administratorrechte nach `%LOCALAPPDATA%\AutoBOX\` installiert und erhält eine Verknüpfung im Startmenü.
+
+Optional lässt sich AutoBOX als EXE-Makro-Schaltfläche im Solid-Edge-Ribbon einbinden. `AutoBOX.ico` bzw. `AutoBOX.png` im selben Ordner werden dann als Symbol verwendet.
 
 ## Bauen
 
@@ -29,7 +31,12 @@ Zum Bauen muss Solid Edge auf dem Rechner installiert sein.
 
 ## Update-Verhalten
 
-Derzeit **kein automatisches Update** – neue Versionen werden manuell durch Austausch der EXE verteilt.
+AutoBOX aktualisiert sich über [Velopack](https://velopack.io) aus den GitHub Releases dieses Repositorys:
+
+- Beim Start prüft AutoBOX im Hintergrund, ob es eine neue Version gibt. Die Oberfläche bleibt dabei bedienbar.
+- Gibt es eine, zeigt ein Dialog die installierte und die neue Version. Nach Bestätigung wird das Update heruntergeladen und installiert, danach startet AutoBOX neu.
+- Ohne Internet, bei Fehlern oder wenn AutoBOX nicht über das Setup installiert ist (z. B. beim Debug-Start), startet das Programm normal. Der Grund steht dann nur im Log.
+- Log-Dateien liegen unter `%LOCALAPPDATA%\AutoBOX\logs\`.
 
 ## Release-Ablauf
 
@@ -37,3 +44,8 @@ Derzeit **kein automatisches Update** – neue Versionen werden manuell durch Au
 2. `git commit -am "Release vX.Y.Z"`
 3. `git tag vX.Y.Z`
 4. `git push && git push --tags`
+5. GitHub Actions (`.github/workflows/release.yml`) baut das Release, packt es mit Velopack und veröffentlicht es. Installierte Programme finden es beim nächsten Start.
+
+Die Version in der `.vbproj` muss zum Tag passen, sonst bricht der Workflow ab.
+
+Der Workflow holt die Solid-Edge-Interop-Assemblies aus dem privaten Repository `NeoGeneTixXX/AutoBOX-interop`. Dafür braucht er das Repository-Secret **`INTEROP_TOKEN`**: einen Fine-grained Personal Access Token mit Lesezugriff (*Contents: Read-only*) nur auf `AutoBOX-interop`.

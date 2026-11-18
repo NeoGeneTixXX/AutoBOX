@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Solid-Edge-Interop-Assemblies liegen NICHT im oeffentlichen Repo,
+      # sondern im privaten Repo AutoBOX-interop (Zugriff ueber Secret INTEROP_TOKEN).
+      - name: Interop-Assemblies holen
+        uses: actions/checkout@v4
+        with:
+          repository: NeoGeneTixXX/AutoBOX-interop
+          token: ${{ secrets.INTEROP_TOKEN }}
+          path: interop
+
+      - name: Interop-Assemblies nach AutoBOX\lib kopieren
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force AutoBOX\lib | Out-Null
+          Copy-Item interop\*.dll AutoBOX\lib\
+
+      - name: .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Version aus .vbproj lesen und mit Tag vergleichen
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$proj = Get-Content AutoBOX\AutoBOX.vbproj
+          $version = ($proj.Project.PropertyGroup | Where-Object { $_.Version } | Select-Object -First 1).Version
+          $tag = "${{ github.ref_name }}".TrimStart('v')
+          if ($version -ne $tag) { throw "Version in AutoBOX.vbproj ($version) passt nicht zum Tag ($tag)." }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      # .NET Framework 4.8 ist auf jedem Windows 10/11 vorhanden -> kein self-contained noetig/moeglich.
+      - name: Publish
+        run: dotnet publish AutoBOX\AutoBOX.vbproj -c Release -o publish
+
+      - name: Velopack installieren
+        run: dotnet tool install -g vpk --version 1.2.161
+
+      - name: Vorherige Releases laden
+        run: vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Packen
+        run: vpk pack --packId AutoBOX --packVersion ${{ steps.version.outputs.version }} --packDir publish --mainExe AutoBOX.exe --packTitle AutoBOX --icon AutoBOX\AutoBOX.ico
+
+      - name: Hochladen
+        run: vpk upload github --repoUrl https://github.com/${{ github.repository }} --publish --releaseName "AutoBOX ${{ steps.version.outputs.version }}" --tag v${{ steps.version.outputs.version }} --token ${{ secrets.GITHUB_TOKEN }}

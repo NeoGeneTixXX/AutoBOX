@@ -65,6 +65,12 @@ Public Class MainForm
         FuegeStandardzeile()   ' Startet mit einer vorbelegten Beispielzeile
     End Sub
 
+    ''' <summary>Nach dem Anzeigen: Update-Pruefung im Hintergrund (blockiert die GUI nicht).</summary>
+    Protected Overrides Async Sub OnShown(e As EventArgs)
+        MyBase.OnShown(e)
+        Await UpdatePruefung.PruefeAsync(Me)
+    End Sub
+
     Private Sub InitialisiereOberflaeche()
         Me.Text = "AutoBOX – Blechteil-Generator für Solid Edge (Stapelverarbeitung)"
         Me.ClientSize = New Size(680, 672)

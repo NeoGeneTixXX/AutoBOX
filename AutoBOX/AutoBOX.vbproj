@@ -37,6 +37,11 @@
     <None Update="AutoBOX.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Auto-Update ueber GitHub Releases -->
+    <PackageReference Include="Velopack" Version="1.2.161" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
     <!-- COM-Verweise auf die Solid-Edge-Typbibliotheken (Early Binding).
          Die GUIDs sind ueber alle Solid-Edge-Versionen stabil (hier aus der
