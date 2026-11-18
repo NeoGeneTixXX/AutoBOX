@@ -1,0 +1,29 @@
+# Build-Ausgaben
+bin/
+obj/
+publish/
+Releases/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+packages/
+
+# Solid-Edge-Interop-Assemblies (aus Siemens-Typbibliotheken erzeugt, nicht weitergeben)
+AutoBOX/lib/
+
+# Sonstiges
+*.log
+Thumbs.db
+.claude/

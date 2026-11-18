@@ -1,0 +1,121 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Windows-Forms-EXE, die exakt "AutoBOX.exe" heißt -->
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>AutoBOX</AssemblyName>
+    <RootNamespace>AutoBOX</RootNamespace>
+    <StartupObject>AutoBOX.Program</StartupObject>
+
+    <!-- .NET Framework 4.8: auf jedem Windows 10/11 vorhanden, ideal fuer COM-Automatisierung -->
+    <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <!-- Solid Edge laeuft seit ST7 ausschliesslich als 64-Bit-Prozess -->
+    <PlatformTarget>x64</PlatformTarget>
+
+    <!-- Programmsymbol (kleine Kiste) wird fest in die EXE eingebettet -->
+    <ApplicationIcon>AutoBOX.ico</ApplicationIcon>
+
+    <OptionStrict>On</OptionStrict>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionInfer>On</OptionInfer>
+
+    <!-- Quelldateien sind UTF-8 (Umlaute in Meldungen/Kommentaren) -->
+    <CodePage>65001</CodePage>
+
+    <Company>AutoBOX</Company>
+    <Product>AutoBOX - Blechteil-Generator fuer Solid Edge</Product>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Icon-Dateien zusaetzlich neben die EXE kopieren:
+         Solid Edge kann fuer EXE-Makro-Schaltflaechen im Ribbon ein Symbol
+         aus einer gleichnamigen .ico/.png/.bmp im selben Ordner uebernehmen. -->
+    <None Update="AutoBOX.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="AutoBOX.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
+    <!-- COM-Verweise auf die Solid-Edge-Typbibliotheken (Early Binding).
+         Die GUIDs sind ueber alle Solid-Edge-Versionen stabil (hier aus der
+         Registry einer Solid-Edge-2026-Installation ausgelesen).
+         EmbedInteropTypes=true bettet die verwendeten Interop-Typen direkt in
+         die EXE ein: kein Interop-DLL-Deployment noetig, lauffaehig gegen
+         beliebige installierte Solid-Edge-Versionen.
+         Zum KOMPILIEREN muss Solid Edge auf dem Entwicklungsrechner
+         installiert sein (die Typbibliotheken muessen registriert sein). -->
+    <COMReference Include="SolidEdgeFramework">
+      <Guid>{8A7EFA3A-F000-11D1-BDFC-080036B4D502}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="SolidEdgePart">
+      <Guid>{8A7EFA42-F000-11D1-BDFC-080036B4D502}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="SolidEdgeFrameworkSupport">
+      <Guid>{943AC5C6-F4DB-11D1-BE00-080036B4D502}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="SolidEdgeGeometry">
+      <Guid>{3E2B3BE1-F0B9-11D1-BDFD-080036B4D502}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(MSBuildRuntimeType)' == 'Core'">
+    <!-- Build ueber "dotnet build" (MSBuild auf .NET Core):
+         Dort ist die MSBuild-Aufgabe ResolveComReference NICHT verfuegbar
+         (Fehler MSB4803), die COMReference-Eintraege oben koennen also nicht
+         ausgewertet werden. Stattdessen werden die bereits erzeugten
+         Interop-Assemblies aus lib\ verwendet – sie stammen aus genau diesen
+         COM-Verweisen (tlbimp gegen Solid Edge 2026).
+         EmbedInteropTypes=true / Private=false: die verwendeten Typen wandern
+         wie bisher direkt in die EXE, die DLLs selbst werden NICHT ausgeliefert.
+         Ergebnis beider Wege ist damit dieselbe eigenstaendige AutoBOX.exe.
+         Zum Aktualisieren (neue Solid-Edge-Version): einmal mit Visual Studio /
+         MSBuild.exe bauen und obj\Release\net48\Interop.*.dll nach lib\ kopieren. -->
+    <Reference Include="Interop.SolidEdgeFramework">
+      <HintPath>lib\Interop.SolidEdgeFramework.dll</HintPath>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Interop.SolidEdgePart">
+      <HintPath>lib\Interop.SolidEdgePart.dll</HintPath>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Interop.SolidEdgeFrameworkSupport">
+      <HintPath>lib\Interop.SolidEdgeFrameworkSupport.dll</HintPath>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Interop.SolidEdgeGeometry">
+      <HintPath>lib\Interop.SolidEdgeGeometry.dll</HintPath>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
